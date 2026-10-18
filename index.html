@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bazza’s Flag Oracle</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏳️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1F5; --surface:#FFFFFF; --ink:#16203A; --muted:#5A6479; --line:#D3DAE3;
+  --accent:#C8102E; --good:#1E7A4C; --bad:#B3261E; --pole:#9AA4B2; --finial:#C9A227;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0E1424; --surface:#18213A; --ink:#E7ECF4; --muted:#9AA6BC; --line:#2A3552;
+    --accent:#E8455C; --good:#4CC38A; --bad:#FF7A70; --pole:#5A667E; --finial:#D8B23A;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3,.display{font-family:"Bricolage Grotesque","Public Sans",system-ui,sans-serif}
+button{font:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px}
+
+/* Header */
+header.top{position:sticky;top:0;z-index:5;padding-top:env(safe-area-inset-top,0px);
+  background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 0 10px}
+.brand h1{margin:0;font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
+.brand a{color:var(--muted);font-size:.85rem;text-decoration:none;white-space:nowrap}
+.brand a:hover{color:var(--ink)}
+.tabs{display:flex;gap:6px;padding-bottom:12px}
+.tab{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 6px;border-radius:999px;font-weight:600;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+section.view{padding:8px 0 40px}
+section.view[hidden]{display:none}
+
+/* Buttons */
+.btn{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:11px 18px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* Today */
+.daybar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 0 22px}
+.date{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:1.05rem;color:var(--muted);margin:0}
+.daybar .row .btn{padding:8px 14px;font-size:.9rem}
+.hero{display:flex;align-items:stretch;padding-bottom:70px;margin-bottom:6px}
+.pole{position:relative;flex:0 0 8px;border-radius:4px;margin-top:4px;
+  background:linear-gradient(90deg,var(--pole),color-mix(in srgb,var(--pole) 55%,#fff),var(--pole))}
+.pole::before{content:"";position:absolute;top:-14px;left:50%;width:18px;height:18px;border-radius:50%;transform:translateX(-50%);
+  background:radial-gradient(circle at 35% 35%,#fff6,transparent 50%),var(--finial)}
+.cloth{position:relative;width:min(100% - 8px,520px);align-self:flex-start;margin-top:6px}
+.cloth.squarish{width:min(100% - 8px,360px)}
+.cloth img{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 18px rgba(22,32,58,.25))}
+.shine{position:absolute;inset:0;overflow:hidden;pointer-events:none;mix-blend-mode:soft-light;
+  -webkit-mask:var(--flag) 0 0/100% 100% no-repeat;mask:var(--flag) 0 0/100% 100% no-repeat}
+.bands{position:absolute;top:0;bottom:0;left:-240px;right:-240px;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0,rgba(255,255,255,.32) 70px,rgba(255,255,255,0) 140px,rgba(0,0,0,.22) 240px);
+  animation:wave 6s linear infinite}
+@keyframes wave{to{transform:translateX(240px)}}
+@media (prefers-reduced-motion:reduce){.bands{animation:none}}
+
+/* Card */
+.name{margin:0;font-size:clamp(2.1rem,8vw,3.4rem);font-weight:800;line-height:1.02;letter-spacing:-.02em}
+.sub{margin:8px 0 16px;color:var(--muted)}
+.swatches{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.sw{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px 4px 5px;font-size:.88rem}
+.sw i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.facts{display:grid;gap:12px;margin:0 0 16px}
+.facts div{display:grid;grid-template-columns:8.5rem 1fr;gap:10px;align-items:start}
+.facts dt{color:var(--muted);font-size:.92rem}
+.facts dd{margin:0}
+.note{margin:0 0 6px;padding:14px 16px;background:var(--surface);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;max-width:62ch}
+.twins{display:flex;flex-wrap:wrap;gap:10px}
+.mini{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:5px 10px 5px 5px;cursor:pointer;color:var(--ink)}
+.mini img{width:36px;height:24px;object-fit:contain}
+
+/* Explore */
+.count{margin:22px 0 2px;font:800 clamp(2.6rem,10vw,3.8rem)/1 "Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
+.countsub{margin:0 0 6px;color:var(--muted)}
+.fgroup h3{font-size:1.02rem;margin:20px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:.9rem;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip i{width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:8px}
+.seg button{border:0;background:var(--surface);color:var(--ink);padding:6px 12px;font-size:.85rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 16px 10px;margin:26px 0}
+.panel h3{margin:0 0 4px;font-size:1.1rem}
+.panel p.lead{margin:0 0 12px;color:var(--muted);font-size:.93rem}
+.bar{display:grid;grid-template-columns:7.2rem 1fr 2.6rem;align-items:center;gap:10px;width:100%;background:none;border:0;color:inherit;padding:5px 0;cursor:pointer;text-align:left}
+.bar .lbl{display:flex;align-items:center;gap:7px;font-size:.92rem}
+.bar .lbl i{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3)}
+.track{height:12px;background:color-mix(in srgb,var(--line) 70%,transparent);border-radius:6px;overflow:hidden}
+.fill{height:100%;border-radius:6px;background:var(--ink)}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-size:.92rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:16px 12px;margin-top:14px}
+.tile{background:none;border:0;padding:0;text-align:left;color:var(--ink);cursor:pointer}
+.tile img{width:100%;aspect-ratio:3/2;object-fit:contain;object-position:left center;display:block;filter:drop-shadow(0 0 .6px rgba(0,0,0,.55))}
+.tile span{display:block;font-size:.82rem;margin-top:5px;line-height:1.25}
+.empty{padding:30px 0;color:var(--muted)}
+
+/* Quiz */
+.qintro{margin:22px 0 4px}
+.qintro h2{margin:0 0 4px;font-size:1.6rem;font-weight:800}
+.qintro p{margin:0;color:var(--muted)}
+.qbar{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 12px;color:var(--muted);font-size:.95rem}
+.qbar strong{color:var(--ink);font-size:1.1rem}
+.prompt{font:800 clamp(1.5rem,6vw,2.2rem)/1.1 "Bricolage Grotesque",sans-serif;margin:0 0 14px}
+.qflag{width:min(100%,420px);margin-bottom:16px}
+.qflag img{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 14px rgba(22,32,58,.22))}
+.closeup{width:min(100%,420px);aspect-ratio:3/2;background-repeat:no-repeat;background-color:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;transition:background-size .35s ease,background-position .35s ease}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.opt{padding:12px;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left;line-height:1.25}
+.opt img{width:100%;aspect-ratio:3/2;object-fit:contain;display:block}
+.opt.good{border-color:var(--good);background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--surface))}
+.opt:disabled{cursor:default}
+.feedback{margin:16px 0 12px}
+.feedback .verdict{font-weight:700}
+.verdict.good{color:var(--good)} .verdict.bad{color:var(--bad)}
+.result{margin:26px 0}
+.result .big{font:800 clamp(3rem,14vw,4.6rem)/1 "Bricolage Grotesque",sans-serif;margin:0}
+
+/* Dialog */
+dialog#sheet{border:0;border-radius:18px;padding:0;width:calc(100% - 24px);max-width:560px;max-height:calc(100% - 40px);background:var(--bg);color:var(--ink)}
+dialog#sheet::backdrop{background:rgba(10,15,30,.55)}
+.sheetin{padding:20px 20px 24px}
+.sheetin .flagbig{width:100%;max-width:400px;height:auto;display:block;margin:6px 0 18px;filter:drop-shadow(0 6px 14px rgba(22,32,58,.25))}
+.closex{float:right;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;padding:18px 0 30px}
+footer p{margin:0 0 6px;max-width:62ch}
+@media (max-width:480px){
+  .facts div{grid-template-columns:1fr;gap:2px}
+  .bar{grid-template-columns:6.2rem 1fr 2.4rem}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Bazza’s Flag Oracle</h1>
+      <a href="https://bazzameps.github.io/">Bazza Ecosystem</a>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button>
+      <button class="tab" role="tab" data-tab="explore" aria-selected="false">Explore</button>
+      <button class="tab" role="tab" data-tab="quiz" aria-selected="false">Quiz</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="view-today"></section>
+  <section class="view" id="view-explore" hidden></section>
+  <section class="view" id="view-quiz" hidden></section>
+</main>
+
+<footer class="wrap">
+  <p>Bazza’s Flag Oracle v1. Flag images from flagcdn.com. Colours count the main design, not every speck inside a coat of arms.</p>
+  <p>Vexillology, not vexatiousness. No flags were shagged in the making of this app.</p>
+</footer>
+
+<dialog id="sheet"><div class="sheetin" id="sheetin"></div></dialog>
+
+<script>
+/* ---------- Data ----------
+code|Name|Capital|Continent|Colours|Layout|Features|Note
+Colours: R red, W white, B blue, Y yellow/gold, G green, K black, O orange
+Layout: h horizontal, v vertical, k canton, n Nordic cross, c centred cross, x diagonal/saltire, t hoist triangle, p plain field + emblem, q blocks, o other
+Features: s star, S sun, m moon, a animal, l plant, w weapon, e emblem/arms, x writing, M map, u Union Jack, c cross
+*/
+const RAW = `dz|Algeria|Algiers|Af|GWR|v|ms|
+ao|Angola|Luanda|Af|RKY|h|sw|The half cog and machete echo the hammer and sickle, standing for industrial and farm workers.
+bj|Benin|Porto-Novo|Af|GYR|q||
+bw|Botswana|Gaborone|Af|BKW|h||The light blue stands for water, specifically rain, which is precious in a dry country.
+bf|Burkina Faso|Ouagadougou|Af|RGY|h|s|
+bi|Burundi|Gitega|Af|RGW|x|s|
+cv|Cabo Verde|Praia|Af|BWRY|h|s|The ten stars stand for the ten main islands.
+cm|Cameroon|Yaoundé|Af|GRY|v|s|
+cf|Central African Republic|Bangui|Af|BWGYR|h|s|
+td|Chad|N’Djamena|Af|BYR|v||Almost identical to Romania’s. Chad’s blue is a touch darker, which is about the only difference.
+km|Comoros|Moroni|Af|YWRBG|t|ms|The four stars and four stripes stand for the islands of the archipelago.
+cg|Republic of the Congo|Brazzaville|Af|GYR|x||
+cd|DR Congo|Kinshasa|Af|BYR|x|s|
+ci|Côte d’Ivoire|Yamoussoukro|Af|OWG|v||Ireland’s flag flipped. Ireland has green by the pole, Côte d’Ivoire has orange.
+dj|Djibouti|Djibouti|Af|BGWR|t|s|
+eg|Egypt|Cairo|Af|RWKY|h|ae|The golden eagle in the middle is the Eagle of Saladin.
+gq|Equatorial Guinea|Malabo|Af|GWRB|t|els|
+er|Eritrea|Asmara|Af|GRBY|t|l|
+sz|Eswatini|Mbabane|Af|BYRKW|h|we|The shield is a traditional Nguni war shield, laid over two spears and a staff.
+et|Ethiopia|Addis Ababa|Af|GYRB|h|s|Its green, yellow and red became the classic pan-African colours, inspired by Ethiopia’s long independence.
+ga|Gabon|Libreville|Af|GYB|h||
+gm|Gambia|Banjul|Af|RBGW|h||The blue stripe stands for the Gambia River, which runs right through the middle of the country.
+gh|Ghana|Accra|Af|RYGK|h|s|Its black star gave the national football team its nickname, the Black Stars.
+gn|Guinea|Conakry|Af|RYG|v||Mali’s flag backwards.
+gw|Guinea-Bissau|Bissau|Af|RYGK|q|s|
+ke|Kenya|Nairobi|Af|KRGW|h|we|The shield and spears are those of the Maasai people.
+ls|Lesotho|Maseru|Af|BWGK|h|e|The black emblem is a mokorotlo, the traditional Basotho straw hat.
+lr|Liberia|Monrovia|Af|RWB|k|s|Modelled on the US flag. Its 11 stripes stand for the signatories of Liberia’s declaration of independence.
+ly|Libya|Tripoli|Af|RKGW|h|ms|From 1977 to 2011 Libya’s flag was plain green, the only single-colour national flag of modern times.
+mg|Madagascar|Antananarivo|Af|WRG|q||
+mw|Malawi|Lilongwe|Af|KRG|h|S|
+ml|Mali|Bamako|Af|GYR|v||
+mr|Mauritania|Nouakchott|Af|RGY|h|ms|The red stripes were added in 2017 to honour those who fought for independence.
+mu|Mauritius|Port Louis|Af|RBYG|h||Four equal horizontal stripes, which is unusual among world flags.
+ma|Morocco|Rabat|Af|RG|p|s|The green five-pointed star is known as the Seal of Solomon.
+mz|Mozambique|Maputo|Af|GKYWR|t|swe|The only national flag with a modern rifle on it: an AK-47 with a bayonet, crossed with a hoe and resting on a book.
+na|Namibia|Windhoek|Af|BRGWY|x|S|
+ne|Niger|Niamey|Af|OWG|h|S|Often mixed up with India’s. Niger has an orange circle where India has a blue wheel, and its flag is nearly square.
+ng|Nigeria|Abuja|Af|GW|v||
+rw|Rwanda|Kigali|Af|BYG|h|S|
+st|São Tomé and Príncipe|São Tomé|Af|GYRK|t|s|The two black stars stand for the two main islands.
+sn|Senegal|Dakar|Af|GYR|v|s|
+sc|Seychelles|Victoria|Af|BYRWG|x||Five bands fan out from the bottom corner, meant to suggest a country moving forward.
+sl|Sierra Leone|Freetown|Af|GWB|h||
+so|Somalia|Mogadishu|Af|BW|p|s|The five points of the star stand for the five regions where Somali people live.
+za|South Africa|Pretoria, Cape Town, Bloemfontein|Af|RBGYKW|t||Adopted in 1994. Its six colours make it one of the most colourful flags with no emblem at all.
+ss|South Sudan|Juba|Af|KRGWBY|t|s|
+sd|Sudan|Khartoum|Af|RWKG|t||
+tz|Tanzania|Dodoma|Af|GYKB|x||
+tg|Togo|Lomé|Af|GYRW|k|s|
+tn|Tunisia|Tunis|Af|RW|p|ms|
+ug|Uganda|Kampala|Af|KYRW|h|ae|The bird is a grey crowned crane, standing on one leg as if stepping forward.
+zm|Zambia|Lusaka|Af|GRKO|o|a|An African fish eagle flies over the stripes, which unusually sit at the far end of the flag.
+zw|Zimbabwe|Harare|Af|GYRKW|t|as|The bird is the Zimbabwe Bird, from soapstone carvings found at the ruins of Great Zimbabwe.
+al|Albania|Tirana|Eu|RK|p|a|The black double-headed eagle goes back to the medieval hero Skanderbeg.
+ad|Andorra|Andorra la Vella|Eu|BYR|v|ea|Without its coat of arms it would be a dead ringer for Chad, Romania and Moldova.
+at|Austria|Vienna|Eu|RW|h||Legend says it comes from a duke’s tunic, soaked in blood everywhere except under his belt.
+by|Belarus|Minsk|Eu|RGW|h||The red and white strip by the pole is a traditional embroidered towel pattern.
+be|Belgium|Brussels|Eu|KYR|v||Officially almost square (13:15), though usually flown in a wider shape.
+ba|Bosnia and Herzegovina|Sarajevo|Eu|BYW|o|s|The yellow triangle is said to represent the shape of the country.
+bg|Bulgaria|Sofia|Eu|WGR|h||
+hr|Croatia|Zagreb|Eu|RWB|h|e|The red and white chequerboard shield is known as the šahovnica.
+cy|Cyprus|Nicosia|Eu|WOG|p|Ml|One of only two national flags with a map of the country on it. The copper colour is a nod to the island’s name.
+cz|Czechia|Prague|Eu|WRB|t||Kept the old Czechoslovakian flag when the country split in 1993.
+dk|Denmark|Copenhagen|Eu|RW|n||The Dannebrog is often called the oldest national flag still in use. Every Nordic cross copies it.
+ee|Estonia|Tallinn|Eu|BKW|h||
+fi|Finland|Helsinki|Eu|WB|n||Blue for the lakes and sky, white for the snow.
+fr|France|Paris|Eu|BWR|v||The Tricolore, from the French Revolution, inspired dozens of other tricolours.
+de|Germany|Berlin|Eu|KRY|h||
+gr|Greece|Athens|Eu|BW|k|c|Its nine stripes are often said to match the nine syllables of the Greek motto ‘Freedom or Death’.
+hu|Hungary|Budapest|Eu|RWG|h||
+is|Iceland|Reykjavík|Eu|BWR|n||
+ie|Ireland|Dublin|Eu|GWO|v||Green and orange for the two traditions on the island, with white for peace between them.
+it|Italy|Rome|Eu|GWR|v||
+xk|Kosovo|Pristina|Eu|BYW|p|Ms|One of only two national flags with a map of the country. The six stars stand for its main ethnic groups.
+lv|Latvia|Riga|Eu|RW|h||The red is a deep carmine, sometimes called Latvian red.
+li|Liechtenstein|Vaduz|Eu|BRY|h|e|At the 1936 Olympics it turned out to be identical to Haiti’s flag, so a gold crown was added in 1937.
+lt|Lithuania|Vilnius|Eu|YGR|h||
+lu|Luxembourg|Luxembourg|Eu|RWB|h||Like the Dutch flag, but with a lighter blue and a longer shape.
+mt|Malta|Valletta|Eu|WR|v|c|The George Cross in the corner was awarded to the whole island by King George VI in 1942.
+md|Moldova|Chișinău|Eu|BYR|v|ea|
+mc|Monaco|Monaco|Eu|RW|h||Same design as Indonesia’s, but Monaco’s is squarer (4:5 against 2:3).
+me|Montenegro|Podgorica|Eu|RY|p|ea|
+nl|Netherlands|Amsterdam|Eu|RWB|h||Originally orange, white and blue, after William of Orange.
+mk|North Macedonia|Skopje|Eu|RY|o|S|
+no|Norway|Oslo|Eu|RWB|n||
+pl|Poland|Warsaw|Eu|WR|h||Turn it upside down and you get Indonesia or Monaco.
+pt|Portugal|Lisbon|Eu|GRY|v|e|The gold armillary sphere celebrates Portugal’s age of sea exploration.
+ro|Romania|Bucharest|Eu|BYR|v||
+ru|Russia|Moscow|Eu|WBR|h||
+sm|San Marino|San Marino|Eu|WB|h|e|
+rs|Serbia|Belgrade|Eu|RBW|h|ea|
+sk|Slovakia|Bratislava|Eu|WBR|h|ec|
+si|Slovenia|Ljubljana|Eu|WBR|h|es|The coat of arms shows Triglav, the country’s highest mountain.
+es|Spain|Madrid|Eu|RY|h|e|The yellow stripe is twice the height of each red one.
+se|Sweden|Stockholm|Eu|BY|n||
+ch|Switzerland|Bern|Eu|RW|c||One of only two square national flags. The other is Vatican City’s.
+ua|Ukraine|Kyiv|Eu|BY|h||Often read as blue sky over golden wheat fields.
+gb|United Kingdom|London|Eu|BWR|o|u|The Union Jack layers the crosses of St George, St Andrew and St Patrick. Wales isn’t represented at all.
+va|Vatican City|Vatican City|Eu|YW|v|e|Square, like Switzerland’s. The crossed keys are the keys of Saint Peter.
+gb-eng|England|London|Eu|WR|c||The St George’s Cross.
+gb-sct|Scotland|Edinburgh|Eu|BW|x||The Saltire. Legend dates it to a battle in 832 AD, which would make it one of the oldest flags in Europe.
+gb-wls|Wales|Cardiff|Eu|WGR|h|a|Y Ddraig Goch, the red dragon.
+af|Afghanistan|Kabul|As|KRGW|v|ex|This is the Islamic Republic design. Since 2021 the Taliban government has used a white flag with the Shahada written on it.
+am|Armenia|Yerevan|As|RBO|h||
+az|Azerbaijan|Baku|As|BRGW|h|ms|
+bh|Bahrain|Manama|As|WR|o||The five white points stand for the five pillars of Islam.
+bd|Bangladesh|Dhaka|As|GR|p|S|The red disc sits slightly towards the pole, so it looks centred when the flag is flying.
+bt|Bhutan|Thimphu|As|YOW|x|a|The white dragon is Druk, the Thunder Dragon, which gives Bhutan its name in its own language.
+bn|Brunei|Bandar Seri Begawan|As|YWKR|x|exm|
+kh|Cambodia|Phnom Penh|As|BRW|h|e|One of very few national flags with a building on it: the temple of Angkor Wat.
+cn|China|Beijing|As|RY|p|s|
+ge|Georgia|Tbilisi|As|WR|c||The five-cross design goes back to the medieval kingdom of Georgia.
+in|India|New Delhi|As|OWGB|h|e|The blue wheel is the Ashoka Chakra, with 24 spokes.
+id|Indonesia|Jakarta|As|RW|h||
+ir|Iran|Tehran|As|GWR|h|ex|‘Allahu Akbar’ is written 22 times along the edges of the white stripe.
+iq|Iraq|Baghdad|As|RWKG|h|x|
+il|Israel|Jerusalem|As|WB|h|s|The blue stripes are based on the design of a Jewish prayer shawl.
+jp|Japan|Tokyo|As|WR|p|S|The Hinomaru, the ‘circle of the sun’.
+jo|Jordan|Amman|As|KWGR|t|s|The seven points on the star stand for the seven verses of the opening chapter of the Quran.
+kz|Kazakhstan|Astana|As|BY|p|Sa|A golden steppe eagle soars under the sun, with a traditional ornament by the pole.
+kw|Kuwait|Kuwait City|As|GWRK|t||
+kg|Kyrgyzstan|Bishkek|As|RY|p|S|The sun has 40 rays, one for each of the 40 tribes united by the hero Manas. Inside it is the roof of a yurt.
+la|Laos|Vientiane|As|RBW|h|m|The white disc is the full moon over the Mekong River.
+lb|Lebanon|Beirut|As|RWG|h|l|The cedar tree has been a symbol of Lebanon since biblical times.
+my|Malaysia|Kuala Lumpur|As|RWBY|k|ms|Known as the Jalur Gemilang, ‘Stripes of Glory’. It has 14 stripes.
+mv|Maldives|Malé|As|RGW|p|m|
+mn|Mongolia|Ulaanbaatar|As|RBY|v|e|The gold symbol is the Soyombo, an emblem of fire, sun, moon and earth.
+mm|Myanmar|Naypyidaw|As|YGRW|h|s|
+np|Nepal|Kathmandu|As|RBW|o|mS|The only national flag that isn’t a rectangle. Its two pennants hold a moon and a sun.
+kp|North Korea|Pyongyang|As|BWR|h|s|
+om|Oman|Muscat|As|WRG|o|we|The emblem is a khanjar dagger over two crossed swords.
+pk|Pakistan|Islamabad|As|GW|v|ms|
+ps|Palestine|East Jerusalem (proclaimed)|As|KWGR|t||Uses the pan-Arab colours, like Jordan, Sudan and Kuwait.
+ph|Philippines|Manila|As|BRWY|t|Ss|Flown with the red stripe on top in times of war.
+qa|Qatar|Doha|As|WR|o||The widest national flag, at 11:28. The maroon is said to come from red dye darkening in the sun.
+sa|Saudi Arabia|Riyadh|As|GW|p|xw|Because it carries the Shahada, it is never flown at half-mast.
+sg|Singapore|Singapore|As|RW|h|ms|
+kr|South Korea|Seoul|As|WRBK|p|e|The red and blue Taegeuk is surrounded by four trigrams for heaven, earth, water and fire.
+lk|Sri Lanka|Sri Jayawardenepura Kotte|As|YROG|o|awl|A golden lion holding a sword, with a bo leaf in each corner.
+sy|Syria|Damascus|As|GWKR|h|s|Since 2025 Syria has used the green, white and black independence flag with three red stars. Older sources show red, white and black with two green stars.
+tj|Tajikistan|Dushanbe|As|RWGY|h|es|
+th|Thailand|Bangkok|As|RWB|h||
+tl|Timor-Leste|Dili|As|RYKW|t|s|
+tr|Türkiye|Ankara|As|RW|p|ms|
+tm|Turkmenistan|Ashgabat|As|GRW|o|ms|The red strip holds five traditional carpet designs, making it one of the most detailed flags in the world.
+ae|United Arab Emirates|Abu Dhabi|As|RGWK|o||
+uz|Uzbekistan|Tashkent|As|BWGR|h|ms|The twelve stars stand for the months of the year.
+vn|Vietnam|Hanoi|As|RY|p|s|
+ye|Yemen|Sana’a|As|RWK|h||
+tw|Taiwan|Taipei|As|RBW|k|S|The white sun has twelve rays, one for each two-hour period of the day.
+ag|Antigua and Barbuda|St John’s|NA|RKBWY|t|S|The rising sun marks the dawn of a new era.
+bs|The Bahamas|Nassau|NA|BYK|t||Aquamarine for the sea, gold for the sand.
+bb|Barbados|Bridgetown|NA|BYK|v|w|The broken trident stands for the break from colonial rule.
+bz|Belize|Belmopan|NA|BRW|h|el|One of very few national flags to show people: two woodcutters either side of the shield.
+ca|Canada|Ottawa|NA|RW|v|l|The maple leaf flag was adopted in 1965, replacing a design with the Union Jack on it.
+cr|Costa Rica|San José|NA|BWR|h|e|
+cu|Cuba|Havana|NA|BWR|t|s|
+dm|Dominica|Roseau|NA|GYKWR|c|as|The parrot is the sisserou, which makes Dominica’s one of the very few flags with purple in it.
+do|Dominican Republic|Santo Domingo|NA|BRW|c|ex|The only national flag with a picture of a Bible on it.
+sv|El Salvador|San Salvador|NA|BW|h|ex|
+gd|Grenada|St George’s|NA|RYG|x|sl|There’s a nutmeg by the pole, as Grenada is famous for growing it.
+gt|Guatemala|Guatemala City|NA|BW|v|aewl|The bird is a quetzal, which also gives its name to the currency.
+ht|Haiti|Port-au-Prince|NA|BR|h|ewl|
+hn|Honduras|Tegucigalpa|NA|BW|h|s|
+jm|Jamaica|Kingston|NA|GYK|x||The only national flag with no red, white or blue at all.
+mx|Mexico|Mexico City|NA|GWR|v|ael|An eagle eating a snake on a cactus, from the Aztec legend of the founding of Tenochtitlan.
+ni|Nicaragua|Managua|NA|BW|h|e|
+pa|Panama|Panama City|NA|WRB|q|s|
+kn|Saint Kitts and Nevis|Basseterre|NA|GRKYW|x|s|
+lc|Saint Lucia|Castries|NA|BWKY|o||The triangles represent the Pitons, the island’s twin volcanic peaks.
+vc|Saint Vincent and the Grenadines|Kingstown|NA|BYG|v||The three green diamonds form a V for Vincent.
+tt|Trinidad and Tobago|Port of Spain|NA|RKW|x||
+us|United States|Washington, D.C.|NA|RWB|k|s|50 stars for the states, 13 stripes for the original colonies.
+ar|Argentina|Buenos Aires|SA|BWY|h|S|The Sun of May has a face, just like the one on Uruguay’s flag.
+bo|Bolivia|Sucre|SA|RYG|h|e|
+br|Brazil|Brasília|SA|GYBW|o|sx|The stars show the night sky over Rio de Janeiro on 15 November 1889. The motto means ‘Order and Progress’.
+cl|Chile|Santiago|SA|WRB|k|s|Often confused with the Texas state flag, where the blue runs the full height.
+co|Colombia|Bogotá|SA|YBR|h||The yellow takes up the whole top half.
+ec|Ecuador|Quito|SA|YBR|h|ea|Colombia’s layout, with a condor-topped coat of arms in the middle.
+gy|Guyana|Georgetown|SA|GWYKR|t||Known as the Golden Arrowhead.
+py|Paraguay|Asunción|SA|RWB|h|es|The only national flag with a different emblem on each side.
+pe|Peru|Lima|SA|RW|v||
+sr|Suriname|Paramaribo|SA|GWRY|h|s|
+uy|Uruguay|Montevideo|SA|WBY|k|S|
+ve|Venezuela|Caracas|SA|YBRW|h|s|The eighth star was added in 2006.
+au|Australia|Canberra|Oc|BWR|k|us|The big seven-pointed star is the Commonwealth Star. The rest make up the Southern Cross.
+fj|Fiji|Suva|Oc|BWR|k|ueal|
+ki|Kiribati|South Tarawa|Oc|RYBW|o|aS|A frigatebird flies over a sun rising from the Pacific.
+mh|Marshall Islands|Majuro|Oc|BOW|x|s|
+fm|Micronesia|Palikir|Oc|BW|p|s|
+nr|Nauru|Yaren (de facto)|Oc|BYW|h|s|The star sits just below the yellow line, showing Nauru just south of the Equator. Its 12 points stand for the 12 original tribes.
+nz|New Zealand|Wellington|Oc|BRW|k|us|Australia’s near-twin. New Zealand has four red stars with white edges, Australia has six white ones.
+pw|Palau|Ngerulmud|Oc|BY|p|m|The yellow moon sits slightly towards the pole, like Bangladesh’s disc.
+pg|Papua New Guinea|Port Moresby|Oc|RKYW|x|as|The bird is a bird of paradise. The design came from a 15-year-old schoolgirl’s entry in 1971.
+ws|Samoa|Apia|Oc|RBW|k|s|
+sb|Solomon Islands|Honiara|Oc|BGYW|x|s|
+to|Tonga|Nukuʻalofa|Oc|RW|k|c|Tonga’s constitution says the flag can never be changed.
+tv|Tuvalu|Funafuti|Oc|BWRY|k|us|The yellow stars are a map of the islands.
+vu|Vanuatu|Port Vila|Oc|RGKY|t|l|The yellow emblem is a curled boar’s tusk, a symbol of wealth, around two crossed namele leaves.`;
+
+const FLAGS = RAW.trim().split('\n').map(line => {
+  const [code,name,capital,cont,cols,layout,feats,note] = line.split('|');
+  return {code,name,capital,cont,cols:[...cols],layout,feats:[...(feats||'')],note:(note||'').trim()};
+});
+const BY = Object.fromEntries(FLAGS.map(f => [f.code,f]));
+const N = FLAGS.length;
+
+const COL = {R:['Red','#CE1126'],W:['White','#FFFFFF'],B:['Blue','#1F4FA3'],Y:['Yellow or gold','#F2C200'],G:['Green','#138A43'],K:['Black','#121212'],O:['Orange','#F08A1C']};
+const CORDER = ['R','W','B','Y','G','K','O'];
+const LAYOUTS = {h:'Horizontal stripes',v:'Vertical stripes',k:'Box in the top corner',n:'Nordic cross',c:'Centred cross',x:'Diagonal or saltire',t:'Triangle at the pole side',p:'Plain field with an emblem',q:'Blocks of colour',o:'Something else entirely'};
+const FEATS = {s:'Star',S:'Sun',m:'Moon or crescent',a:'Animal',l:'Plant or tree',w:'Weapon',e:'Coat of arms or emblem',x:'Writing',M:'Map',u:'Union Jack',c:'Cross'};
+const CONTS = {Af:'Africa',As:'Asia',Eu:'Europe',NA:'North America',SA:'South America',Oc:'Oceania'};
+const TWINS = [['td','ro','ad','md'],['id','mc','pl'],['ie','ci','it'],['it','mx'],['nl','lu'],['au','nz'],['sn','ml','gn','cm'],['co','ec','ve'],['ru','si','sk','rs'],['ne','in'],['jo','ps','sd','kw'],['us','lr','my'],['hn','ni','sv'],['qa','bh'],['at','lv'],['eg','ye','iq','sy'],['tr','tn'],['no','is'],['gb-eng','ge']];
+
+const svgUrl = c => `https://flagcdn.com/${c}.svg`;
+const pngUrl = (c,w=160) => `https://flagcdn.com/w${w}/${c}.png`;
+const hasFeat = (f,k) => f.feats.includes(k) || (k==='c' && (f.layout==='n'||f.layout==='c'));
+const twinsOf = c => [...new Set(TWINS.filter(g=>g.includes(c)).flat())].filter(x=>x!==c);
+const featList = f => Object.keys(FEATS).filter(k=>hasFeat(f,k)).map(k=>FEATS[k]);
+const $ = s => document.querySelector(s);
+
+/* Storage (best scores, last tab) */
+const store = {
+  get(k,d){try{const v=localStorage.getItem('bfo.'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('bfo.'+k,JSON.stringify(v))}catch(e){}}
+};
+
+/* Random helpers */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(arr,rnd=Math.random){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+/* ---------- Shared card ---------- */
+function swatchesHTML(f){
+  return `<div class="swatches">${f.cols.map(c=>`<span class="sw"><i style="background:${COL[c][1]}"></i>${COL[c][0]}</span>`).join('')}</div>`;
+}
+function factsHTML(f){
+  const feats = featList(f);
+  const tw = twinsOf(f.code);
+  return `
+  <h2 class="name">${f.name}</h2>
+  <p class="sub">Capital: ${f.capital}. ${CONTS[f.cont]}.</p>
+  ${swatchesHTML(f)}
+  <dl class="facts">
+    <div><dt>Layout</dt><dd>${LAYOUTS[f.layout]}</dd></div>
+    <div><dt>Features</dt><dd>${feats.length?feats.join(', '):'None, just colours'}</dd></div>
+    ${tw.length?`<div><dt>Easily confused with</dt><dd><div class="twins">${tw.map(c=>`<button class="mini" data-open="${c}"><img src="${pngUrl(c,80)}" alt="" loading="lazy">${BY[c].name}</button>`).join('')}</div></dd></div>`:''}
+  </dl>
+  ${f.note?`<p class="note">${f.note}</p>`:''}`;
+}
+
+/* ---------- Detail sheet ---------- */
+const sheet = $('#sheet');
+function openSheet(code){
+  const f = BY[code]; if(!f) return;
+  $('#sheetin').innerHTML = `<button class="closex" data-close>Close</button>
+    <img class="flagbig" src="${svgUrl(f.code)}" alt="Flag of ${f.name}">${factsHTML(f)}`;
+  if(!sheet.open) sheet.showModal();
+  $('#sheetin').scrollTop = 0; sheet.scrollTop = 0;
+}
+sheet.addEventListener('click', e => { if(e.target===sheet) sheet.close(); });
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-open]'); if(o){ openSheet(o.dataset.open); return; }
+  if(e.target.closest('[data-close]')) sheet.close();
+});
+
+/* ---------- Tabs ---------- */
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===t));
+  ['today','explore','quiz'].forEach(v=>$('#view-'+v).hidden = v!==t);
+  store.set('tab',t);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+
+/* ---------- Today ---------- */
+const ORDER = shuffle(FLAGS.map((_,i)=>i), mulberry32(1973));
+let dayOffset = 0;
+function flagForOffset(off){
+  const d = new Date(); d.setDate(d.getDate()+off);
+  const dn = Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  return {date:d, f:FLAGS[ORDER[((dn%N)+N)%N]]};
+}
+function renderToday(){
+  const {date,f} = flagForOffset(dayOffset);
+  const label = date.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const v = $('#view-today');
+  v.innerHTML = `
+    <div class="daybar">
+      <p class="date">${dayOffset===0?'Flag of the day, ':''}${label}</p>
+      <div class="row">
+        <button class="btn ghost" id="prevDay" aria-label="Previous day">Earlier</button>
+        <button class="btn ghost" id="nextDay" ${dayOffset===0?'disabled':''} aria-label="Next day">Later</button>
+      </div>
+    </div>
+    <div class="hero">
+      <div class="pole" aria-hidden="true"></div>
+      <div class="cloth" id="cloth" style="--flag:url('${svgUrl(f.code)}')">
+        <img src="${svgUrl(f.code)}" alt="Flag of ${f.name}" id="heroImg">
+        <span class="shine" aria-hidden="true"><span class="bands"></span></span>
+      </div>
+    </div>
+    ${factsHTML(f)}
+    <div class="row" style="margin-top:22px">
+      ${dayOffset!==0?'<button class="btn" id="backToday">Back to today</button>':''}
+      <button class="btn ${dayOffset!==0?'ghost':''}" id="randomFlag">Show me a random flag</button>
+    </div>`;
+  const img = $('#heroImg');
+  const fit = () => { if(img.naturalWidth && img.naturalHeight && img.naturalWidth/img.naturalHeight < 1.25) $('#cloth').classList.add('squarish'); };
+  img.complete ? fit() : img.addEventListener('load',fit);
+  $('#prevDay').onclick = () => { dayOffset--; renderToday(); };
+  $('#nextDay').onclick = () => { if(dayOffset<0){ dayOffset++; renderToday(); } };
+  const bt = $('#backToday'); if(bt) bt.onclick = () => { dayOffset=0; renderToday(); };
+  $('#randomFlag').onclick = () => openSheet(pick(FLAGS).code);
+}
+
+/* ---------- Explore ---------- */
+const F = {cols:new Set(), colMode:'all', ncol:null, layout:null, feats:new Set(), cont:null};
+function matches(f){
+  if(F.cont && f.cont!==F.cont) return false;
+  if(F.layout && f.layout!==F.layout) return false;
+  for(const k of F.feats) if(!hasFeat(f,k)) return false;
+  if(F.ncol!==null){ if(F.ncol===6 ? f.cols.length<6 : f.cols.length!==F.ncol) return false; }
+  if(F.cols.size){
+    if(F.colMode==='all'){ for(const c of F.cols) if(!f.cols.includes(c)) return false; }
+    else { if(!f.cols.every(c=>F.cols.has(c))) return false; }
+  }
+  return true;
+}
+function chip(label,pressed,data,sw){
+  return `<button class="chip" aria-pressed="${pressed}" ${data}>${sw?`<i style="background:${sw}"></i>`:''}${label}</button>`;
+}
+function renderExplore(){
+  const list = FLAGS.filter(matches).sort((a,b)=>a.name.localeCompare(b.name));
+  const n = list.length;
+  const anyFilter = F.cols.size||F.ncol!==null||F.layout||F.feats.size||F.cont;
+
+  // Colour league over current results
+  const colCounts = CORDER.map(c=>[c, list.filter(f=>f.cols.includes(c)).length]).sort((a,b)=>b[1]-a[1]);
+  const top = colCounts[0];
+  const nCounts = [1,2,3,4,5,6].map(k=>[k, list.filter(f=>k===6?f.cols.length>=6:f.cols.length===k).length]);
+  const pct = x => n ? Math.round(x/n*100) : 0;
+
+  $('#view-explore').innerHTML = `
+    <p class="count">${n}</p>
+    <p class="countsub">${n===1?'flag matches':'flags match'}${anyFilter?'':` (the full set: 193 UN members, plus Vatican City, Palestine, Kosovo, Taiwan, England, Scotland and Wales)`}.</p>
+    ${anyFilter?`<button class="btn ghost" id="resetF" style="margin-top:8px">Clear all filters</button>`:''}
+
+    <div class="fgroup"><h3>Colours</h3>
+      <div class="chips">${CORDER.map(c=>chip(COL[c][0],F.cols.has(c),`data-col="${c}"`,COL[c][1])).join('')}</div>
+      <div class="seg" role="group" aria-label="Colour matching">
+        <button data-cmode="all" aria-pressed="${F.colMode==='all'}">Uses all of these</button>
+        <button data-cmode="only" aria-pressed="${F.colMode==='only'}">Uses only these</button>
+      </div>
+    </div>
+    <div class="fgroup"><h3>Number of colours</h3>
+      <div class="chips">${[1,2,3,4,5,6].map(k=>chip(k===6?'6 or more':String(k),F.ncol===k,`data-ncol="${k}"`)).join('')}</div>
+    </div>
+    <div class="fgroup"><h3>Layout</h3>
+      <div class="chips">${Object.entries(LAYOUTS).map(([k,v])=>chip(v,F.layout===k,`data-layout="${k}"`)).join('')}</div>
+    </div>
+    <div class="fgroup"><h3>Has a</h3>
+      <div class="chips">${Object.entries(FEATS).map(([k,v])=>chip(v,F.feats.has(k),`data-feat="${k}"`)).join('')}</div>
+    </div>
+    <div class="fgroup"><h3>Continent</h3>
+      <div class="chips">${Object.entries(CONTS).map(([k,v])=>chip(v,F.cont===k,`data-cont="${k}"`)).join('')}</div>
+    </div>
+
+    ${n?`
+    <div class="panel">
+      <h3>Colour league</h3>
+      <p class="lead">${COL[top[0]][0]} is the most common colour here, on ${top[1]} of ${n} flags (${pct(top[1])}%). Tap a bar to filter by it.</p>
+      ${colCounts.map(([c,k])=>`<button class="bar" data-solo="${c}"><span class="lbl"><i style="background:${COL[c][1]}"></i>${COL[c][0]}</span><span class="track"><span class="fill" style="width:${pct(k)}%;background:${c==='W'?'var(--muted)':COL[c][1]}"></span></span><span class="num">${k}</span></button>`).join('')}
+    </div>
+    <div class="panel">
+      <h3>Colours per flag</h3>
+      <p class="lead">How many different colours each flag uses.</p>
+      ${nCounts.map(([k,c])=>`<button class="bar" data-ncolbar="${k}"><span class="lbl">${k===6?'6 or more':k===1?'1 colour':k+' colours'}</span><span class="track"><span class="fill" style="width:${pct(c)}%"></span></span><span class="num">${c}</span></button>`).join('')}
+    </div>
+    <div class="grid">${list.map(f=>`<button class="tile" data-open="${f.code}"><img src="${pngUrl(f.code)}" srcset="${pngUrl(f.code,320)} 2x" alt="" loading="lazy"><span>${f.name}</span></button>`).join('')}</div>
+    `:`<p class="empty">No flags match all of that. Try removing a filter or two.</p>`}
+  `;
+}
+$('#view-explore').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  const d = b.dataset;
+  if(d.col){ F.cols.has(d.col)?F.cols.delete(d.col):F.cols.add(d.col); }
+  else if(d.cmode){ F.colMode = d.cmode; }
+  else if(d.ncol){ const k=+d.ncol; F.ncol = F.ncol===k?null:k; }
+  else if(d.layout){ F.layout = F.layout===d.layout?null:d.layout; }
+  else if(d.feat){ F.feats.has(d.feat)?F.feats.delete(d.feat):F.feats.add(d.feat); }
+  else if(d.cont){ F.cont = F.cont===d.cont?null:d.cont; }
+  else if(d.solo){ F.cols = new Set([d.solo]); F.colMode='all'; }
+  else if(d.ncolbar){ F.ncol = +d.ncolbar; }
+  else if(b.id==='resetF'){ F.cols.clear(); F.colMode='all'; F.ncol=null; F.layout=null; F.feats.clear(); F.cont=null; }
+  else return;
+  const y = window.scrollY; renderExplore(); window.scrollTo(0,y);
+});
+
+/* ---------- Quiz ---------- */
+const MODES = {
+  name:{label:'Name the flag',blurb:'See a flag, pick the country.'},
+  spot:{label:'Spot the flag',blurb:'See a country, pick its flag.'},
+  closeup:{label:'Close-up',blurb:'A zoomed-in corner. Guess straight away for 3 points, or zoom out for fewer.'},
+  twins:{label:'Evil twins',blurb:'Only the lookalikes. Chad or Romania? Good luck.'}
+};
+const Q = {mode:store.get('qmode','name'), cont:store.get('qcont','all'), total:10, i:0, score:0, cur:null, opts:[], done:false, chosen:null, zoom:0, pos:[50,50], used:new Set(), phase:'setup'};
+const ZOOMS = [450,250,0]; // 0 = whole flag
+const POSITIONS = [[0,0],[50,0],[100,0],[0,50],[50,50],[100,50],[0,100],[50,100],[100,100]];
+const bestKey = () => `best.${Q.mode}.${Q.mode==='twins'?'all':Q.cont}`;
+const maxScore = () => Q.total*(Q.mode==='closeup'?3:1);
+
+function similar(ans,pool,n,exclude){
+  const ex = new Set([ans.code,...exclude]);
+  return pool.filter(f=>!ex.has(f.code))
+    .map(f=>({f,s:f.cols.filter(c=>ans.cols.includes(c)).length - Math.abs(f.cols.length-ans.cols.length)*.5 + (f.layout===ans.layout?1.2:0) + Math.random()*1.8}))
+    .sort((a,b)=>b.s-a.s).slice(0,n).map(x=>x.f);
+}
+function quizPool(){ return FLAGS.filter(f=>Q.cont==='all'||f.cont===Q.cont); }
+
+function startRound(){ Q.i=0; Q.score=0; Q.used=new Set(); Q.phase='play'; nextQ(); }
+function nextQ(){
+  if(Q.i>=Q.total){ endRound(); return; }
+  Q.i++; Q.done=false; Q.chosen=null; Q.zoom=0; Q.pos=pick(POSITIONS);
+  if(Q.mode==='twins'){
+    const g = pick(TWINS);
+    Q.cur = BY[pick(g)];
+    let opts = g.map(c=>BY[c]);
+    if(opts.length<4) opts = opts.concat(similar(Q.cur,FLAGS,4-opts.length,g));
+    Q.opts = shuffle(opts);
+  } else {
+    const pool = quizPool();
+    let fresh = pool.filter(f=>!Q.used.has(f.code));
+    if(!fresh.length) fresh = pool;
+    Q.cur = pick(fresh); Q.used.add(Q.cur.code);
+    Q.opts = shuffle([Q.cur, ...similar(Q.cur,pool,3,[])]);
+  }
+  renderQuiz();
+}
+function answer(code){
+  if(Q.done) return;
+  Q.done = true; Q.chosen = code;
+  if(code===Q.cur.code) Q.score += Q.mode==='closeup' ? [3,2,1][Q.zoom] : 1;
+  renderQuiz();
+}
+function endRound(){
+  Q.phase='end';
+  const prev = store.get(bestKey(),null);
+  Q.newBest = prev===null || Q.score>prev;
+  if(Q.newBest) store.set(bestKey(),Q.score);
+  renderQuiz();
+}
+
+function setupHTML(){
+  const best = store.get(bestKey(),null);
+  return `
+    <div class="qintro"><h2>Quiz</h2><p>Rounds of ${Q.total}. Your best score for each mode is saved on this device.</p></div>
+    <div class="fgroup"><h3>Mode</h3>
+      <div class="chips">${Object.entries(MODES).map(([k,m])=>chip(m.label,Q.mode===k,`data-qmode="${k}"`)).join('')}</div>
+      <p style="margin:10px 0 0;color:var(--muted)">${MODES[Q.mode].blurb}</p>
+    </div>
+    ${Q.mode!=='twins'?`<div class="fgroup"><h3>Flags from</h3>
+      <div class="chips">${chip('Everywhere',Q.cont==='all','data-qcont="all"')}${Object.entries(CONTS).map(([k,v])=>chip(v,Q.cont===k,`data-qcont="${k}"`)).join('')}</div>
+    </div>`:''}
+    <div class="row" style="margin-top:24px">
+      <button class="btn" data-qstart>Start a round</button>
+      ${best!==null?`<span style="color:var(--muted)">Best: ${best} out of ${maxScore()}</span>`:''}
+    </div>`;
+}
+function playHTML(){
+  const f = Q.cur, done = Q.done;
+  const cls = o => !done ? '' : o.code===f.code ? 'good' : o.code===Q.chosen ? 'bad' : '';
+  let stage = '', opts = '';
+  if(Q.mode==='spot'){
+    stage = `<p class="prompt">Which is the flag of ${f.name}?</p>`;
+    opts = Q.opts.map((o,i)=>`<button class="opt ${cls(o)}" data-ans="${o.code}" ${done?'disabled':''} aria-label="Option ${i+1}${done?', '+o.name:''}"><img src="${pngUrl(o.code,320)}" alt=""></button>`).join('');
+  } else {
+    if(Q.mode==='closeup'){
+      const z = done ? 0 : ZOOMS[Q.zoom];
+      const bg = z ? `background-size:${z}% auto;background-position:${Q.pos[0]}% ${Q.pos[1]}%` : 'background-size:contain;background-position:center';
+      stage = `<p class="prompt">Whose flag is this?</p>
+        <div class="closeup" role="img" aria-label="Zoomed-in mystery flag" style="background-image:url('${svgUrl(f.code)}');${bg}"></div>
+        ${!done && Q.zoom<2?`<button class="btn ghost" data-zoom style="margin-bottom:10px">Zoom out (worth ${[2,1][Q.zoom]} ${Q.zoom===1?'point':'points'})</button>`:''}`;
+    } else {
+      stage = `<p class="prompt">${Q.mode==='twins'?'Which twin is this?':'Whose flag is this?'}</p>
+        <div class="qflag"><img src="${svgUrl(f.code)}" alt="Mystery flag"></div>`;
+    }
+    opts = Q.opts.map(o=>`<button class="opt ${cls(o)}" data-ans="${o.code}" ${done?'disabled':''}>${o.name}</button>`).join('');
+  }
+  let fb = '';
+  if(done){
+    const right = Q.chosen===f.code;
+    const tw = twinsOf(f.code).map(c=>BY[c].name);
+    fb = `<div class="feedback">
+      <p class="verdict ${right?'good':'bad'}">${right?'Correct.':'Not quite.'} That’s ${f.name}.</p>
+      ${tw.length?`<p style="margin:4px 0 0;color:var(--muted)">Easily confused with ${tw.join(', ')}.</p>`:''}
+      <div class="row" style="margin-top:12px">
+        <button class="btn" data-qnext>${Q.i>=Q.total?'See my score':'Next flag'}</button>
+        <button class="btn ghost" data-open="${f.code}">About this flag</button>
+      </div></div>`;
+  }
+  return `<div class="qbar"><span>Question ${Q.i} of ${Q.total}</span><span>Score <strong>${Q.score}</strong></span></div>
+    ${stage}<div class="opts">${opts}</div>${fb}
+    <button class="btn ghost" data-qquit style="margin-top:22px">Stop this round</button>`;
+}
+function endHTML(){
+  const best = store.get(bestKey(),Q.score);
+  return `<div class="result">
+    <p style="margin:0 0 6px;color:var(--muted)">${MODES[Q.mode].label}${Q.mode!=='twins'&&Q.cont!=='all'?', '+CONTS[Q.cont]:''}</p>
+    <p class="big">${Q.score} / ${maxScore()}</p>
+    <p>${Q.newBest?'New personal best.':`Your best is ${best}.`}</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn" data-qstart>Play again</button>
+      <button class="btn ghost" data-qsetup>Change mode</button>
+    </div></div>`;
+}
+function renderQuiz(){
+  $('#view-quiz').innerHTML = Q.phase==='setup' ? setupHTML() : Q.phase==='play' ? playHTML() : endHTML();
+}
+$('#view-quiz').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  const d = b.dataset;
+  if(d.qmode){ Q.mode=d.qmode; store.set('qmode',Q.mode); renderQuiz(); }
+  else if(d.qcont){ Q.cont=d.qcont; store.set('qcont',Q.cont); renderQuiz(); }
+  else if('qstart' in d){ startRound(); }
+  else if('qsetup' in d || 'qquit' in d){ Q.phase='setup'; renderQuiz(); }
+  else if(d.ans){ answer(d.ans); }
+  else if('zoom' in d){ if(Q.zoom<2){ Q.zoom++; renderQuiz(); } }
+  else if('qnext' in d){ nextQ(); }
+});
+
+/* ---------- Boot ---------- */
+renderToday();
+renderExplore();
+renderQuiz();
+showTab(store.get('tab','today'));
+</script>
+</body>
+</html>
